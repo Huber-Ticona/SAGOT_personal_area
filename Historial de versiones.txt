@@ -1,0 +1,5 @@
+
+[Version 5.2 (13-8-2021)]
+- Se modifico el tamaño de la letra y el tipo de letra al asignar dimensionador.
+- 
+
