@@ -113,7 +113,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Gestionar dimensionador</string>
+    <string>Gestionar trabajador</string>
    </property>
   </widget>
   <widget class="QLabel" name="lb_logo">
@@ -130,6 +130,19 @@
    </property>
    <property name="scaledContents">
     <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_3">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>390</y>
+     <width>71</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>VERSION 5.5</string>
    </property>
   </widget>
  </widget>

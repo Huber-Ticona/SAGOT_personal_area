@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>140</x>
-     <y>300</y>
+     <y>320</y>
      <width>121</width>
      <height>41</height>
     </rect>
@@ -153,6 +153,19 @@
    </property>
    <property name="text">
     <string>DESCONECTADO</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox">
+   <property name="geometry">
+    <rect>
+     <x>180</x>
+     <y>280</y>
+     <width>131</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Guardar cuenta</string>
    </property>
   </widget>
  </widget>

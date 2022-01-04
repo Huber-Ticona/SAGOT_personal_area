@@ -4,7 +4,7 @@ from PyQt5 import uic
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QPixmap , QIcon
 import sys
-from datetime import datetime
+from datetime import datetime,date 
 import json
 import ctypes
 import os
@@ -18,7 +18,8 @@ class Login(QMainWindow):
         self.conexion = None
         self.host = None
         self.puerto = None
-        
+        self.actual = None
+        self.txt_contra.setEchoMode(QLineEdit.Password)
         self.logo()
         self.btn_manual.clicked.connect(self.conectar_manual)
         self.btn_iniciar.clicked.connect(self.iniciar)
@@ -26,7 +27,7 @@ class Login(QMainWindow):
 
     def logo(self):
         actual = os.path.abspath(os.getcwd())
-        actual = actual.replace('\\' , '/')
+        self.actual = actual.replace('\\' , '/')
         ruta = actual + '/icono_imagen/madenco logo.png'
         foto = QPixmap(ruta)
         self.lb_logo.setPixmap(foto)
@@ -49,6 +50,28 @@ class Login(QMainWindow):
                     pass #si no encuentra alguna linea
         else:
             print('manifest no encontrado')
+
+        if os.path.isfile(actual+ '/registry.txt'):
+            print('encontrado registry')
+            with open(actual + '/registry.txt' , 'r', encoding='utf-8') as file:
+                lines = file.readlines()
+                try:
+                    user = lines[0].split(':')
+                    user = user[1]
+                    user = user[:len(user)-1]
+
+                    password = lines[1].split(':')
+                    password = password[1]
+                    password = password[:len(password)-1]
+                    self.txt_usuario.setText(user)
+                    self.txt_contra.setText(password)
+
+                except IndexError:
+                    print('error de indice del registry')
+                    pass #si no encuentra alguna linea
+        else:
+            print('Datos de usuario no encontrados')
+
     def conectar(self):
         try:
             if self.host and self.puerto:
@@ -82,9 +105,18 @@ class Login(QMainWindow):
                 except socket.error:
                     self.lb_conexion.setText('SERVIDOR FUERA DE LA RED')
                     #QMessageBox.about(self,'ERROR' ,'No se puede establecer la conexion con el servidor')
+    def guardar_datos(self):
+        
+        if self.checkBox.isChecked():
 
+            with open(self.actual + '/registry.txt' , 'w', encoding='utf-8') as file:
+                file.write('usuario:'+ self.txt_usuario.text() + '\n')
+                file.write('contra:' + self.txt_contra.text()+ '\n')
+                file.write('')
+    
     def iniciar(self):
-        if self.conexion:
+        self.conectar()
+        if self.conexion != None:
             usuario = self.txt_usuario.text()
             contra = self.txt_contra.text()
             correcto = False
@@ -101,6 +133,7 @@ class Login(QMainWindow):
                         
                 if correcto:
                     self.ventana_principal = Cliente(self.conexion, personal ,self.host, self.puerto, self)
+                    
                     self.hide()
                     self.ventana_principal.show()
                 else:
@@ -110,29 +143,6 @@ class Login(QMainWindow):
                 QMessageBox.about(self ,'Conexion', 'El servidor no responde')
         else:
             self.conectar()
-            usuario = self.txt_usuario.text()
-            contra = self.txt_contra.text()
-            correcto = False
-            personal = None
-            try:
-                resultado = self.conexion.root.obtener_usuario_activo()
-                for item in resultado:
-                    if item[0] == usuario and item[1] == contra and item[4] == 'SI':
-                        correcto = True
-                        personal = item
-                    elif item[0] == usuario and item[1] == contra and item[6] =='area':
-                        correcto = True
-                        personal = item
-                        
-                if correcto:
-                    self.ventana_principal = Cliente(self.conexion, personal ,self.host, self.puerto, self)
-                    self.hide()
-                    self.ventana_principal.show()
-                else:
-                    QMessageBox.about(self ,'ERROR', 'Usuario o contraseña no validas')
-
-            except EOFError:
-                QMessageBox.about(self ,'Conexion', 'El servidor no responde')
             
 
 class Cliente(QMainWindow):
@@ -207,7 +217,6 @@ class Buscar(QMainWindow):
         self.usuario = user
         self.dimensionadores = []
         self.func_area = funciones
-        self.buscar_dimensionadores()
         self.inicializar()
         self.r_fecha.setChecked(True)
         self.tableWidget.setColumnWidth(0,70)
@@ -218,6 +227,7 @@ class Buscar(QMainWindow):
         self.tableWidget.setColumnWidth(5,100)
         self.tableWidget.setColumnWidth(6,100)
         self.dateEdit.setDate(datetime.now().date())
+        self.dateEdit.setCalendarPopup(True)
 
         self.btn_dimensionado.clicked.connect(self.buscar_dimensionado)
         self.btn_elaboracion.clicked.connect(self.buscar_elaboracion)
@@ -228,10 +238,12 @@ class Buscar(QMainWindow):
         self.btn_atras.clicked.connect(self.atras)
         self.seleccion = None
 
-    def buscar_dimensionadores(self):
+    def buscar_trabajadores(self):
+        print('buscando... ' + self.seleccion)
+        self.dimensionadores = []
         if self.conexion:
             try:
-                resultado = self.conexion.root.obtener_dimensionador_activo()
+                resultado = self.conexion.root.obtener_trabajador_activo(self.seleccion)
                 if resultado:
                     for item in resultado:
                         self.dimensionadores.append( item[0] )
@@ -263,6 +275,7 @@ class Buscar(QMainWindow):
     def buscar_dimensionado(self):
         if self.conexion:
             self.seleccion = 'dimensionado'
+            self.buscar_trabajadores()
             self.lb_tipo_orden.setText('dimensionado')
             self.tableWidget.setRowCount(0)
 
@@ -322,6 +335,7 @@ class Buscar(QMainWindow):
     def buscar_elaboracion(self):
         if self.conexion:
             self.seleccion = 'elaboracion'
+            self.buscar_trabajadores()
             self.lb_tipo_orden.setText('elaboracion')
             self.tableWidget.setRowCount(0)
 
@@ -381,6 +395,7 @@ class Buscar(QMainWindow):
     def buscar_pallets(self):
         if self.conexion:
             self.seleccion = 'pallets'
+            self.buscar_trabajadores()
             self.lb_tipo_orden.setText('pallets')
             self.tableWidget.setRowCount(0)
             if self.r_orden.isChecked(): #Busqueda por numero de orden
@@ -436,6 +451,7 @@ class Buscar(QMainWindow):
     def buscar_carpinteria(self):
         if self.conexion:
             self.seleccion = 'carpinteria'
+            self.buscar_trabajadores()
             self.lb_tipo_orden.setText('carpinteria')
             self.tableWidget.setRowCount(0)
 
@@ -515,13 +531,13 @@ class Buscar(QMainWindow):
 
 class Modificar(QMainWindow):
 
-    def __init__(self, conn , orden , dimensionadores, selec ,parent = None):
+    def __init__(self, conn , orden , trabajadores, selec ,parent = None):
         super(Modificar , self).__init__(parent)
-        uic.loadUi('cliente_modificar.ui' , self)
+        uic.loadUi('cliente_modificar_2.ui' , self)
 
         self.conexion = conn
         self.seleccion = selec
-        self.dimensionadores = dimensionadores
+        self.trabajadores = trabajadores
         self.tableWidget.setColumnWidth(0,80)
         self.tableWidget.setColumnWidth(1,495)
         self.tableWidget.setColumnWidth(2,85 )
@@ -529,14 +545,17 @@ class Modificar(QMainWindow):
         self.inicializar()
         self.date_ingreso.setCalendarPopup(True)
         self.date_real.setCalendarPopup(True)
+        self.date_real.setDate( datetime.now().date() )
+        self.date_ingreso.setDate( datetime.now().date() )
         self.btn_guardar.clicked.connect(self.guardar)
         self.btn_atras.clicked.connect(self.atras)
     
     def inicializar(self):
         self.btn_guardar.setIcon(QIcon('icono_imagen/guardar.ico'))
         self.btn_atras.setIcon(QIcon('icono_imagen/atras.ico'))
-        for item in self.dimensionadores:
-                    self.combo_dimensionador.addItem( item )
+        self.lb_nombre_orden.setText((self.seleccion).upper())
+        for item in self.trabajadores:
+                    self.combo_dimensionador.addItem( item ) #comboox de trabajadores
 
         if self.seleccion == 'dimensionado':
             self.date_ingreso.setDate( datetime.now().date() )
@@ -613,7 +632,7 @@ class Modificar(QMainWindow):
             except EOFError:
                 QMessageBox.about(self, 'ERROR', 'Se perdio la conexion con el servidor')
         else:
-            self.date_real.setDate( datetime.now().date() )
+            
             try:
                 if self.seleccion == 'elaboracion':
                     resultado = self.conexion.root.buscar_orden_elab_numero(self.nro_orden)
@@ -664,12 +683,14 @@ class Modificar(QMainWindow):
                     self.tableWidget.setItem(fila , 1 , QTableWidgetItem( descripciones[j] ) )
                     self.tableWidget.setItem(fila , 2 , QTableWidgetItem( str( valores_neto[j] )) ) 
                     j+=1 
+                self.label_22.setHidden(True)
                 self.lb_enchapado.setHidden(True)
+                '''self.lb_enchapado.setHidden(True)
                 self.label_14.setHidden(True)
                 self.label_4.setHidden(True)
                 self.r_opc1.setHidden(True)
                 self.combo_dimensionador.setHidden(True)
-                self.date_ingreso.setHidden(True)
+                self.date_ingreso.setHidden(True)'''
 
                 if resultado[12]:
                     date = datetime.fromisoformat( str( resultado[12] ) )
@@ -687,13 +708,62 @@ class Modificar(QMainWindow):
                     self.lb_vend.setText(resultado[14])      #vendedor
                 else: 
                     self.lb_vend.setText('NO ASIGNADO')      #vendedor
+                if resultado[17]:
+                    aux2 = datetime.fromisoformat(  str(resultado[17]) )
+                    self.lb_ing.setText( str(aux2.strftime("%d-%m-%Y")) )      #fecha de ingreso
+                if resultado[18]:
+                    self.lb_dim.setText(resultado[18])      #trabajador asignado
 
-                self.groupBox_2.hide()
+                #self.groupBox_2.hide()
             except EOFError:
                 QMessageBox.about(self, 'ERROR', 'Se perdio la conexion con el servidor')
 
+# NUEVA VERSION DE GUARDADO -------
 
     def guardar(self):
+        tipo = (self.seleccion).lower()
+
+        if self.r_opc1.isChecked():
+            trabajador = self.combo_dimensionador.currentText()
+            fecha_ingreso = str( self.date_ingreso.date().toPyDate() )
+
+            if self.seleccion == 'dimensionado':
+                print('modficando fecha ingreso y trabajador asignado de ' + self.seleccion +' ....')
+                if self.conexion.root.actualizar_orden_dim2(self.nro_orden , fecha_ingreso, trabajador ):
+                    self.lb_dim.setText(trabajador)
+                    fecha = (datetime.fromisoformat(fecha_ingreso)).strftime("%d-%m-%Y")
+                    print(fecha)
+                    self.lb_ing.setText(fecha)
+                    QMessageBox.about(self,'EXITO','Fecha de ingreso y dimensionador asignados correctamente')
+                else:
+                    QMessageBox.about(self,'ERROR','La orden de dimensionado NO se actualizo debido a que ningun texto fue modificado')
+
+            else: #SI NO ES DE DIMENSIONADO , OSEA ELAB , CARP Y PALL
+                if self.conexion.root.actualizar_orden_ingreso_trabajador(tipo ,str(self.nro_orden) , fecha_ingreso ,trabajador ):
+                    self.lb_dim.setText(trabajador)
+                    fecha = (datetime.fromisoformat(fecha_ingreso)).strftime("%d-%m-%Y")
+                    print(fecha)
+                    self.lb_ing.setText(fecha)
+                    QMessageBox.about(self,'EXITO','Fecha ingreso y traajador asignados correctamente')
+                else:
+                    QMessageBox.about(self,'ERROR','La orden de '+ tipo +' NO se actualizo debido a que ningun DATO fue modificado o se produjo algun error interno.')
+                print('modficando fecha ingreso y trabajador asignado de ' + self.seleccion +' ....')
+
+        elif self.r_opc2.isChecked():
+            fecha_real = str (self.date_real.date().toPyDate() )
+            
+            if self.conexion.root.actualizar_orden_fecha_real( tipo, str(self.nro_orden), fecha_real):
+                fecha = (datetime.fromisoformat(fecha_real)).strftime("%d-%m-%Y")
+                print(fecha)
+                self.lb_real.setText(str(fecha))
+                QMessageBox.about(self,'EXITO','Fecha real asignada correctamente')
+            else:
+                QMessageBox.about(self,'ERROR','La orden de '+ tipo+' NO se actualizo debido a que ningun texto fue modificado o se produjo un error interno')    
+            print('modficando fecha real de ' + self.seleccion +' ....')
+        else:
+            QMessageBox.about(self,'CONSEJO','Seleccione un los datos que desea registrar, si fecha de ingreso y trabajador o solo la fecha real')
+    #----- VERSION ANTIGUA GUARDAR2 -------
+    def guardar2(self):
         if self.seleccion == 'dimensionado':
             dimensionador = self.combo_dimensionador.currentText()
             fecha_ingreso = str( self.date_ingreso.date().toPyDate() )
@@ -758,20 +828,35 @@ class Gestion_dimensionador(QMainWindow):
         self.conexion = conn
 
         self.dimensionadores = []
-        self.inicializar()
+        #self.inicializar()
         self.r_inicio.setDate( datetime.now().date() )
         self.r_termino.setDate( datetime.now().date() )
+        self.r_inicio.setCalendarPopup(True)
+        self.r_termino.setCalendarPopup(True)
+        self.m_inicio.setCalendarPopup(True)
+
         self.btn_registrar.clicked.connect(self.registrar)
         self.btn_atras.clicked.connect(self.volver)
         self.btn_obtener.clicked.connect(self.obtener)
         self.btn_actualizar.clicked.connect(self.modificar)
         self.btn_retirar.clicked.connect(self.retirar)
+# ---------------
+        self.r_dim2.toggled.connect(lambda: self.obtener_trabajador_area(self.r_dim2 , 1) )
+        self.r_elab2.toggled.connect(lambda: self.obtener_trabajador_area(self.r_elab2, 1) )
+        self.r_carp2.toggled.connect(lambda: self.obtener_trabajador_area(self.r_carp2 , 1) )
+        self.r_pall2.toggled.connect(lambda: self.obtener_trabajador_area(self.r_pall2, 1) )
 
-    def inicializar(self):
+        self.r_dim3.toggled.connect(lambda: self.obtener_trabajador_area(self.r_dim3,2)   )
+        self.r_elab3.toggled.connect(lambda: self.obtener_trabajador_area(self.r_elab3,2) )
+        self.r_carp3.toggled.connect(lambda: self.obtener_trabajador_area(self.r_carp3,2) )
+        self.r_pall3.toggled.connect(lambda: self.obtener_trabajador_area(self.r_pall3,2 ) )
+
         self.btn_atras.setIcon(QIcon('icono_imagen/atras.ico'))
         self.btn_registrar.setIcon(QIcon('icono_imagen/guardar.ico'))
         self.btn_actualizar.setIcon(QIcon('icono_imagen/guardar.ico'))
 
+    def inicializar(self):
+        #inicializa los trabajadores activos del sistema.
         if self.conexion:
             try:
                 resultado = self.conexion.root.obtener_dimensionador_activo()
@@ -792,26 +877,45 @@ class Gestion_dimensionador(QMainWindow):
             telefono = self.r_telefono.text()
             inicio = self.r_inicio.date()
             inicio = inicio.toPyDate()
+            area = ''
+            if self.r_dim.isChecked():
+                area = self.r_dim.text()
+                print(area)
+            elif self.r_elab.isChecked():
+                area = self.r_elab.text()
+                print(area)
+            elif self.r_carp.isChecked():
+                area = self.r_carp.text()
+                print(area)
+            elif self.r_pall.isChecked():
+                area = self.r_pall.text()
+                print(area)
 
-            if nombre != '' :
-                if telefono != '' :
-                    try:
-                        telefono = int(telefono)
-                        if self.conexion.root.registrar_dimensionador(nombre,telefono, str(inicio)) :
-                            QMessageBox.about(self,'EXITO','Dimensionador registrado correctamente')
-                            self.hide()
-                            self.parent().show()
-                        else:
-                            QMessageBox.about(self,'ERROR','Problemas al registrar al dimensionador en la base de datos.')
+            
+            if area != '':
+                area = area.lower()
+                print(area)
+                if nombre != '' :
+                    if telefono != '' :
+                        try:
+                            telefono = int(telefono)
+                            if self.conexion.root.registrar_trabajador(nombre,telefono, str(inicio), area ) :
+                                QMessageBox.about(self,'EXITO','TRABAJADOR registrado correctamente')
+                                self.hide()
+                                self.parent().show()
+                            else:
+                                QMessageBox.about(self,'ERROR','Problemas al registrar al TRABAJADOR en la base de datos.')
 
 
-                    except ValueError:
-                        QMessageBox.about(self,'DATOS ERRONEO','Ingrese solo numeros en el campo telefono')           
+                        except ValueError:
+                            QMessageBox.about(self,'DATOS ERRONEO','Ingrese solo numeros en el campo telefono')           
 
-                else: 
-                    QMessageBox.about(self,'DATOS INCOMPLETOS','Ingrese un telefono antes de registrar')           
+                    else: 
+                        QMessageBox.about(self,'DATOS INCOMPLETOS','Ingrese un telefono antes de registrar')           
+                else:
+                    QMessageBox.about(self,'DATOS INCOMPLETOS','Ingrese un nombre antes de registrar') 
             else:
-                QMessageBox.about(self,'DATOS INCOMPLETOS','Ingrese un nombre antes de registrar') 
+                    QMessageBox.about(self,'DATOS INCOMPLETOS','Seleccione el area del trabajador a registrar.') 
         else:
             QMessageBox.about(self,'CONEXION','No ha establecido conexion con el servidor.') 
     
@@ -824,6 +928,34 @@ class Gestion_dimensionador(QMainWindow):
                 aux =   datetime.fromisoformat( str(datos[2]) )  
                 self.m_inicio.setDate( aux )
                 break
+    def obtener_trabajador_area(self, radio,box):
+        #inicializa los trabajadores activos del sistema.
+        self.box_dimensionador.clear()
+        self.box_dimensionador_2.clear()
+        if radio.isChecked():
+            area = radio.text()
+            print('obteniendo trabajadores de area: ' + area )
+            if self.conexion:
+                try:
+                    resultado = self.conexion.root.obtener_trabajador_activo(area)
+                    self.dimensionadores = resultado
+                    for item in resultado:
+                        if box == 1:
+                            self.box_dimensionador.addItem(item[0])
+                        elif box == 2:
+                            self.box_dimensionador_2.addItem(item[0])
+
+                except EOFError:
+                    QMessageBox.about(self,'CONEXION','No se pudo obtener la lista de dimensionadores. El servidor no responde') 
+            
+            else:
+                QMessageBox.about(self,'CONEXION','No ha establecido conexion con el servidor.') 
+
+        else:
+            area = radio.text()
+            print('no buscando: ' + area)
+        
+        
 
     def modificar(self):
         nombre = self.box_dimensionador.currentText()
@@ -844,8 +976,8 @@ class Gestion_dimensionador(QMainWindow):
                     if nuevo_telefono != '' :
                         try:
                             nuevo_telefono = int(nuevo_telefono)
-                            if self.conexion.root.actualizar_dimensionador(nuevo_nombre,nuevo_telefono, str(nuevo_inicio) , nro_dimensionador ) :
-                                QMessageBox.about(self,'EXITO','Dimensionador ACTUALIZADO correctamente')
+                            if self.conexion.root.actualizar_trabajador(nuevo_nombre,nuevo_telefono, str(nuevo_inicio) , nro_dimensionador ) :
+                                QMessageBox.about(self,'EXITO','Trabajador ACTUALIZADO correctamente')
                                 self.hide()
                                 self.parent().show()
                             else:
@@ -878,8 +1010,8 @@ class Gestion_dimensionador(QMainWindow):
         if self.conexion:
             if self.dimensionadores:
                 try:
-                    if self.conexion.root.retirar_dimensionador(nro_dimensionador , str( termino ) ):
-                        QMessageBox.about(self,'EXITO','Dimensionador RETIRADO correctamente')
+                    if self.conexion.root.retirar_trabajador(nro_dimensionador , str( termino ) ):
+                        QMessageBox.about(self,'EXITO','Trabajador RETIRADO correctamente')
                         self.hide()
                         self.parent().show()
                     else:
