@@ -108,8 +108,9 @@ class Login(QMainWindow):
     def guardar_datos(self):
         
         if self.checkBox.isChecked():
-
+            print('modificando: '+ self.actual + '/registry.txt')
             with open(self.actual + '/registry.txt' , 'w', encoding='utf-8') as file:
+                
                 file.write('usuario:'+ self.txt_usuario.text() + '\n')
                 file.write('contra:' + self.txt_contra.text()+ '\n')
                 file.write('')
@@ -124,23 +125,23 @@ class Login(QMainWindow):
             try:
                 resultado = self.conexion.root.obtener_usuario_activo()
                 for item in resultado:
-                    if item[0] == usuario and item[1] == contra and item[4] == 'SI':
+                    if item[0] == usuario and item[1] == contra and item[4] == 'SI' and item[6] =='area': #si es PERSONAL DE AREA SUPER-USUARIO 
                         correcto = True
                         personal = item
-                    elif item[0] == usuario and item[1] == contra and item[6] =='area':
+                    elif item[0] == usuario and item[1] == contra and item[6] =='area':# SI NO ES PERSONAL DE AREA SUPER-USUARIO 
                         correcto = True
                         personal = item
                         
                 if correcto:
                     self.ventana_principal = Cliente(self.conexion, personal ,self.host, self.puerto, self)
-                    
+                    self.guardar_datos()
                     self.hide()
                     self.ventana_principal.show()
                 else:
-                    QMessageBox.about(self ,'ERROR', 'Usuario o contraseña no validas')
+                    QMessageBox.about(self ,'ERROR', 'Personal de área: Usuario o contraseña no validas')
 
             except EOFError:
-                QMessageBox.about(self ,'Conexion', 'El servidor no responde')
+                QMessageBox.about(self ,'Conexion', 'Personal de área: El servidor no responde')
         else:
             self.conectar()
             
