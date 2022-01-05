@@ -1,4 +1,12 @@
 
+
+[Version 5.3.2 (05-1-2021)]
+- Se corrigio un error  por el cual no se abrian las ordenes. (Error de diseño faltaba el campo contacto)
+
+[Version 5.3.1 (04-1-2021)]
+- Solo personal de area puede usar la aplicacion.
+- Ahora se puede asignar fecha de ingreso y trabajador asociado a todas las ordenes.
+
 [Version 5.2 (13-8-2021)]
 - Se modifico el tamaño de la letra y el tipo de letra al asignar dimensionador.
 - 

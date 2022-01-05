@@ -1051,7 +1051,7 @@ if __name__ == '__main__':
     myappid = 'madenco.personal.area' # arbitrary string
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid) 
     app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon('icono_imagen/madenco logo.ico'))
+    app.setWindowIcon(QIcon('icono_imagen/area_logo2.png'))
     
     inicio = Login()
     inicio.show()

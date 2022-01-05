@@ -137,12 +137,12 @@
     <rect>
      <x>10</x>
      <y>390</y>
-     <width>71</width>
+     <width>91</width>
      <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>VERSION 5.5</string>
+    <string>VERSION 5.3.2</string>
    </property>
   </widget>
  </widget>
