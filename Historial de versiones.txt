@@ -1,5 +1,6 @@
-[Version 5.3.3 (05-1-2021)]
-- 
+[Version 5.4 (05-1-2021)]
+- Interfaz mejorada.
+- se agrego campo fecha termino a las ordenes de trabajo.
 
 [Version 5.3.2 (05-1-2021)]
 - Se corrigio un error  por el cual no se abrian las ordenes. (Error de diseño faltaba el campo contacto)
