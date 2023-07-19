@@ -288,11 +288,11 @@ class Personal(QMainWindow):
                     if area == 'dimensionado':
                         consulta = self.conexion.root.buscar_orden_dim_numero(orden)
                     if area == 'elaboracion':
-                        consulta = self.conexion.root.buscar_orden_elab_numero(orden)
+                        consulta = self.conexion.root.buscar_orden_general_numero(area,orden)
                     if area == 'carpinteria':
-                        consulta = self.conexion.root.buscar_orden_carp_numero(orden)
+                        consulta = self.conexion.root.buscar_orden_general_numero(area,orden)
                     if area == 'pallets':
-                        consulta = self.conexion.root.buscar_orden_pall_numero(orden)
+                        consulta = self.conexion.root.buscar_orden_general_numero(area,orden)
 
                     if consulta != None :
                         fila = self.tableWidget.rowCount()
@@ -338,11 +338,11 @@ class Personal(QMainWindow):
                     if area == 'dimensionado':
                         datos = self.conexion.root.buscar_orden_dim_fecha( str(aux) )
                     if area == 'elaboracion':
-                        datos = self.conexion.root.buscar_orden_elab_fecha(str(aux))
+                        datos = self.conexion.root.buscar_orden_general_fecha(area , str(aux))
                     if area == 'carpinteria':
-                        datos = self.conexion.root.buscar_orden_carp_fecha(str(aux))
+                        datos = self.conexion.root.buscar_orden_general_fecha(area , str(aux))
                     if area == 'pallets':
-                        datos = self.conexion.root.buscar_orden_pall_fecha(str(aux))
+                        datos = self.conexion.root.buscar_orden_general_fecha(area , str(aux))
 
                     if datos != ():
                         for dato in datos:
@@ -519,13 +519,8 @@ class Personal(QMainWindow):
         else:
             
             try:
-                if self.area == 'elaboracion':
-                    resultado = self.conexion.root.buscar_orden_elab_numero(self.nro_orden)
-                elif self.area == 'carpinteria':
-                    resultado = self.conexion.root.buscar_orden_carp_numero(self.nro_orden)
-                elif self.area == 'pallets':
-                    resultado = self.conexion.root.buscar_orden_pall_numero(self.nro_orden)
-                
+                resultado = self.conexion.root.buscar_orden_general_numero( self.area, self.nro_orden)
+
                 self.lb_orden.setText( str(resultado[0]) ) 
                 self.lb_nombre.setText(resultado[1]) #nombre
                 self.lb_telefono.setText( str(resultado[2]) ) #telefono

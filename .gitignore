@@ -5,3 +5,5 @@ registry.txt
 update sql.txt
 venv
 activar_entorno.bat
+personal.spec
+.gitignore

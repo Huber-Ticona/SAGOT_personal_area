@@ -1,3 +1,6 @@
+[Version 5.5(19-07-2023)]
+- compatible con servidor 6.0 - fecha termino -real ingreso y trabajador actualizados en la interfaz.
+
 [Version 5.4 (05-1-2021)]
 - Interfaz mejorada.
 - se agrego campo fecha termino a las ordenes de trabajo.
