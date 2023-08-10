@@ -410,6 +410,7 @@ class Personal(QMainWindow):
                 
                 self.combo_dimensionador.hide()
                 self.combo_dimensionador.clear() #vaciar combobox
+                self.tableWidget_2.setRowCount(0) #Vaciar la tabla. 
                 self.btn_guardar.setDisabled(True)
                 self.date_seleccion.setDisabled(True)
                 self.opcion_datos.setCurrentIndex(0) 
@@ -873,7 +874,7 @@ class InputDialog(QDialog):
 
         self.host = QLineEdit(self)
         self.puerto = QLineEdit(self)
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self);
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self)
 
         layout = QFormLayout(self)
         layout.addRow("HOST:", self.host)

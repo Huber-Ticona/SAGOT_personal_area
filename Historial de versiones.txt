@@ -1,3 +1,8 @@
+[Version 5.6(19-07-2023)]
+- compatible con servidor 6.1.
+- Se corrigio el bug de items de ordenes duplicados.
+
+
 [Version 5.5(19-07-2023)]
 - compatible con servidor 6.0 - fecha termino -real ingreso y trabajador actualizados en la interfaz.
 
